@@ -68,7 +68,7 @@ char *earth[] = {
  * 将公历日期转为农历日期
  * 
  * @param dat  待转化的公历日期
- * @param dat  转化后的农历日期
+ * @param lunar_dat  转化后的农历日期
  */
 void convert_to_lunar_date(struct date* dat, struct date* lunar_dat){
     int gap;
@@ -80,19 +80,17 @@ void convert_to_lunar_date(struct date* dat, struct date* lunar_dat){
     assert(cmp_date(dat, &base_solar_date) >= 0 && cmp_date(dat, &last_solar_date) <= 0);
     gap = calc_gap(dat, &base_solar_date);
 
-    while((sum = sum_days(lunar_date.year, 0)) < gap){
+    while((sum = sum_days(lunar_date.year, 0)) <= gap){
         gap -= sum;
         lunar_date.year += 1;
     }
     days = get_lunar_days(lunar_date.year);
     month = (days & 0xf0000) ? 13 : 12;
-    while((sum = ((days & (1 << (month-lunar_date.month))) ? 30 : 29)) < gap){
+    while((sum = ((days & (1 << (month-lunar_date.month))) ? 30 : 29)) <= gap){
         gap -= sum;
         lunar_date.month += 1;
     }
-    while(gap-- > 0){
-        lunar_date.day += 1;
-    }
+		lunar_date.day += gap;
     *lunar_dat = lunar_date;
 }
 
@@ -296,10 +294,10 @@ int sum_days(int year, int solar){
     // lunar
     int sum = 0;
     int days = get_lunar_days(year);
-	int month = (days & 0xf0000) ? 13 : 12;
-	for(int j = 1; j <= month; j++)
-	    sum += (days & (1 << (month-j))) ? 30 : 29;
-	return sum;
+    int month = (days & 0xf0000) ? 13 : 12;
+    for(int j = 1; j <= month; j++)
+        sum += (days & (1 << (month-j))) ? 30 : 29;
+    return sum;
 }
 
 /**
